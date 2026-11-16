@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>香姨小吃部 超商繳費條碼</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#111;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;-webkit-text-size-adjust:100%}
+header.top{position:sticky;top:0;z-index:9;background:#111;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header.top h1{font-size:15px;margin:0;font-weight:700}
+header.top .tot{font-size:13px;opacity:.9;text-align:right;line-height:1.35}
+.note{background:#fff8e1;border-bottom:1px solid #f0e0a0;padding:8px 14px;font-size:12px;color:#6b5300;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:0 10px 60px}
+.card{border:1px solid #ddd;border-radius:10px;margin:14px 0;overflow:hidden;background:#fff}
+.card.ok{opacity:.45}
+.hd{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f4f6f8;border-bottom:1px solid #e3e6ea}
+.idx{flex:0 0 30px;height:30px;border-radius:50%;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.meta{flex:1;min-width:0}
+.nm{font-size:17px;font-weight:700;line-height:1.2}
+.sub{font-size:11px;color:#667;margin-top:2px}
+.amt{font-size:19px;font-weight:800;color:#c00;white-space:nowrap}
+.bcwrap{background:#fff;padding:14px 8px;display:flex;flex-direction:column;gap:12px}
+.bcwrap svg{display:block;width:100%;height:auto;shape-rendering:crispEdges}
+.nums{display:flex;flex-direction:column;gap:2px;padding:0 12px 10px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#556;word-break:break-all}
+.done{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid #eee;font-size:14px;color:#333;cursor:pointer}
+.done input{width:20px;height:20px}
+</style></head><body>
+<header class="top">
+  <h1>香姨小吃部 超商繳費條碼</h1>
+  <div class="tot"><b id="prog">0 / 4</b> 張<br>合計 NT$ 13,240</div>
+</header>
+<div class="note">請把手機亮度調到最亮，一張一張讓店員掃描：每張都要掃 3 段條碼（①②③）。掃完點「已繳完成」再往下滑。</div>
+<div class="wrap" id="wrap"></div>
+<script>
+// ---- Code 39 encoder → SVG ----
+const C39={'0':'000110100','1':'100100001','2':'001100001','3':'101100000','4':'000110001','5':'100110000','6':'001110000','7':'000100101','8':'100100100','9':'001100100','A':'100001001','B':'001001001','C':'101001000','D':'000011001','E':'100011000','F':'001011000','G':'000001101','H':'100001100','I':'001001100','J':'000011100','K':'100000011','L':'001000011','M':'101000010','N':'000010011','O':'100010010','P':'001010010','Q':'000000111','R':'100000110','S':'001000110','T':'000010110','U':'110000001','V':'011000001','W':'111000000','X':'010010001','Y':'110010000','Z':'011010000','-':'010000101','.':'110000100',' ':'011000100','$':'010101000','/':'010100010','+':'010001010','%':'000101010','*':'010010100'};
+function code39svg(data,h){
+  h=h||70; const nw=2, wd=nw*2.4, gap=nw; // narrow/wide element width, inter-char gap
+  const chars=('*'+data.toUpperCase()+'*').split('');
+  let x=nw*2, rects='';
+  for(let ci=0; ci<chars.length; ci++){
+    const p=C39[chars[ci]]; if(!p){continue;}
+    for(let i=0;i<9;i++){
+      const w=p[i]==='1'?wd:nw;
+      if(i%2===0){ rects+='<rect x="'+x+'" y="0" width="'+w+'" height="'+h+'"/>'; }
+      x+=w;
+    }
+    x+=gap;
+  }
+  x+=nw*2;
+  return '<svg viewBox="0 0 '+x+' '+h+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="'+x+'" height="'+h+'" fill="#fff"/><g fill="#000">'+rects+'</g></svg>';
+}
+const DATA=[{"name": "香姨小吃部", "sub": "雇主意外險 0426AEL0000748 · 期限 115年12月01日", "amount": 1840, "seg": ["151201I0B", "5660669145180000", "999942000001840"]}, {"name": "香姨小吃部", "sub": "公共意外險 0426APL0004990 · 期限 115年12月01日", "amount": 3200, "seg": ["151201I0B", "5660669144310000", "9999A3000003200"]}, {"name": "香姨小吃部", "sub": "火險 042026FSC00053 · 期限 115年12月01日", "amount": 4700, "seg": ["151201I0B", "5530120287300000", "999932000004700"]}, {"name": "香姨小吃部", "sub": "產品責任險 0426AML0005949 · 期限 115年12月01日", "amount": 3500, "seg": ["151201I0B", "5660669145450000", "999948000003500"]}];
+const n=DATA.length;
+const wrap=document.getElementById('wrap');
+const circ=['①','②','③','④','⑤'];
+DATA.forEach((r,idx)=>{
+  const sec=document.createElement('section');
+  sec.className='card'; sec.id='c'+(idx+1);
+  const bcs=r.seg.map(s=>'<div>'+code39svg(s)+'</div>').join('');
+  const nums=r.seg.map((s,i)=>'<span>'+(circ[i]||'')+s+'</span>').join('');
+  sec.innerHTML=
+    '<div class="hd"><div class="idx">'+(idx+1)+'</div>'+
+    '<div class="meta"><div class="nm">'+r.name+'</div><div class="sub">'+(r.sub||'')+'</div></div>'+
+    '<div class="amt">NT$ '+Number(r.amount).toLocaleString()+'</div></div>'+
+    '<div class="bcwrap">'+bcs+'</div>'+
+    '<div class="nums">'+nums+'</div>'+
+    '<label class="done"><input type="checkbox" data-i="'+(idx+1)+'"><span>已繳完成</span></label>';
+  wrap.appendChild(sec);
+});
+document.querySelectorAll('.done input').forEach(cb=>{
+  cb.addEventListener('change',()=>{
+    cb.closest('.card').classList.toggle('ok',cb.checked);
+    document.getElementById('prog').textContent=document.querySelectorAll('.done input:checked').length+' / '+n;
+  });
+});
+</script>
+</body></html>
